@@ -36,7 +36,7 @@ public class ToDoController {
             description = "Get a list of all ToDos and their Status")
     @GetMapping("/")
     public List<ToDo> list(@SortDefault.SortDefaults({@SortDefault(sort = "created", direction = Sort.Direction.DESC)}) Pageable pageable) {
-        return repository.findAll(pageable).stream().map(toDoEntity -> mapper.dto(toDoEntity)).collect(Collectors.toList());
+        return repository.findAll(pageable).stream().map(mapper::dto).collect(Collectors.toList());
     }
 
     @Operation(summary = "Create a new ToDo",

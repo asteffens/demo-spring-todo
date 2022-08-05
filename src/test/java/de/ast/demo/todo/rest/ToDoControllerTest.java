@@ -46,7 +46,7 @@ class ToDoControllerTest {
     @Test
     void create() {
         ToDoCreateUpdate newToDo =  new ToDoCreateUpdate("Create Title",ToDoStatus.OPEN);
-        ResponseEntity repsonse = controller.create(newToDo);
+        ResponseEntity<ToDo> repsonse = controller.create(newToDo);
         assertThat(repsonse).matches(m -> m.getStatusCode().is2xxSuccessful());
     }
 
