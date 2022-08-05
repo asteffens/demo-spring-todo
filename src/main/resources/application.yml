@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: todo
+    description: Demo ToDo Application
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: ${spring.application.name}
+      username: root
+      password: todo
+      auto-index-creation: true
+      authentication-database: admin
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
