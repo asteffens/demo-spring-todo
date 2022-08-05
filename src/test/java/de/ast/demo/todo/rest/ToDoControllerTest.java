@@ -10,11 +10,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import javax.validation.ConstraintViolationException;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -38,7 +39,7 @@ class ToDoControllerTest {
 
     @Test
     void list() {
-        Page<ToDoEntity> list = repository.findAll(Pageable.ofSize(10));
+        List<ToDo> list = controller.list(Pageable.ofSize(10));
         assertThat(list).hasSize(5);
     }
 
@@ -75,5 +76,21 @@ class ToDoControllerTest {
         assertThat(entity).isPresent();
         assertThat(entity.get()).matches(todo -> todo.getTitle().equals("Updated and Done Title"));
         assertThat(entity.get()).matches(todo -> todo.getStatus().equals(ToDoStatus.DONE));
+    }
+
+    @Test
+    void StartAndSolveATodoUC(){
+        //GIVEN a open Todo
+        ToDoEntity todo = repository.save(ToDoEntity.builder().title("My ToDo").status(ToDoStatus.OPEN).build());
+        // WHEN the user starts the ToDo
+        ResponseEntity starting = controller.update(new ToDoCreateUpdate(todo.getTitle(),ToDoStatus.STARTED),todo.getId());
+        // THEN the todo is in status STARTED
+        todo = repository.findById(todo.getId()).orElseThrow(() -> new NoSuchElementException("ToDo not found"));
+        assertThat(todo).matches(t -> t.getStatus().equals(ToDoStatus.STARTED));
+        // WHEN the user then finishes the Todo
+        ResponseEntity done = controller.update(new ToDoCreateUpdate(todo.getTitle(),ToDoStatus.DONE),todo.getId());
+        // THEN the todo is in status DONE
+        todo = repository.findById(todo.getId()).orElseThrow(() -> new NoSuchElementException("ToDo not found"));
+        assertThat(todo).matches(t -> t.getStatus().equals(ToDoStatus.DONE));
     }
 }
