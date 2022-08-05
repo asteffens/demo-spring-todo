@@ -3,17 +3,21 @@ package de.ast.demo.todo.rest;
 import de.ast.demo.todo.persistence.ToDoEntity;
 import de.ast.demo.todo.persistence.ToDoRepository;
 import de.ast.demo.todo.persistence.ToDoStatus;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
+import javax.validation.ConstraintViolationException;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 class ToDoControllerTest {
@@ -45,6 +49,19 @@ class ToDoControllerTest {
         assertThat(repsonse).matches(m -> m.getStatusCode().is2xxSuccessful());
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {"0","2","257","300"})
+    void createWithInvalidTitleFails(int size) {
+        ToDoCreateUpdate newToDo =  new ToDoCreateUpdate(RandomStringUtils.random(size),ToDoStatus.OPEN);
+        assertThatExceptionOfType(ConstraintViolationException.class).isThrownBy(() -> controller.create(newToDo));
+    }
+
+    @Test
+    void createWithInvalidStatusFails() {
+        ToDoCreateUpdate newToDo =  new ToDoCreateUpdate(RandomStringUtils.random(100),null);
+        assertThatExceptionOfType(ConstraintViolationException.class).isThrownBy(() -> controller.create(newToDo));
+    }
+
     @Test
     void update() {
         ToDoCreateUpdate newToDo =  new ToDoCreateUpdate("Update Title",ToDoStatus.OPEN);
@@ -58,7 +75,5 @@ class ToDoControllerTest {
         assertThat(entity).isPresent();
         assertThat(entity.get()).matches(todo -> todo.getTitle().equals("Updated and Done Title"));
         assertThat(entity.get()).matches(todo -> todo.getStatus().equals(ToDoStatus.DONE));
-
-
     }
 }
